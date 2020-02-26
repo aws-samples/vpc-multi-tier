@@ -1,3 +1,6 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 # Deal with text file line endings in a default reasonable manner for all text files.
 # Presence of CRLF on Windows when using UNIX-like tools such as Cygwin can be problematic
 # when a Git clone operation results in automatic translation of LF characters to CRLF.
