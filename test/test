@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 # To Do: Replace the following commands with execution of ../scripts/manage-stack
 
 AWS_REGION=us-east-1

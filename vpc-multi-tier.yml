@@ -1,13 +1,9 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 AWSTemplateFormatVersion: '2010-09-09'
 
 Description: Creates 1-, 2- or 3-tier network environment with 1, 2, or 3 Availability Zones (AZs)
-
-# When using cfn-lint, you might want to exclude rule W1001 so that warnings of the following
-# types are suppressed:
-#
-# Warning	Cfn-Lint	Ref to resource "rInternetGateway" that may not be available when
-# condition "cCreateInternetGateway3Azs" is True and when condition "cCreateInternetGateway"
-# is False at Resources/rTier1IgwRoute3/Properties/GatewayId/Ref
 
 Metadata:
   cfn-lint:
