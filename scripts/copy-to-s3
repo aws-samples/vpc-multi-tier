@@ -1,0 +1,78 @@
+#!/bin/bash
+
+#set -x
+
+PARAMS=""
+while (( "$#" )); do
+  case "$1" in
+    -o|--org)
+      ORG_ARG=$2
+      shift 2
+      ;;
+    -a|--account_id)
+      ACCOUNT_ARG=$2
+      shift 2
+      ;;
+    -t|--template)
+      TEMPLATE_ARG=$2
+      shift 2
+      ;;
+    -r|--region)
+      REGION_ARG=$2
+      shift 2
+      ;;
+    -p|--profile)
+      PROFILE_ARG=$2
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*|--*=)
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *)
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+
+eval set -- "$PARAMS"
+
+if [ -z ${ORG_ARG+x} ]; then
+  ORG=acme
+else
+  ORG=$ORG_ARG
+fi
+
+if [ -z ${ACCOUNT_ARG+x} ]; then
+  echo 'Must supply --account|-a argument with AWS account ID'
+  exit 1
+else
+  ACCOUNT=$ACCOUNT_ARG
+fi
+
+if [ -z ${TEMPLATE_ARG+x} ]; then
+  TEMPLATE=vpc-multi-tier.yml
+else
+  TEMPLATE=$TEMPLATE_ARG
+fi
+
+if [ -z ${REGION_ARG+x} ]; then
+  REGION=us-east-1
+else
+  REGION=$REGION_ARG
+fi
+
+if [ -z ${PROFILE_ARG+x} ]; then
+  PROFILE=admin
+else
+  PROFILE=$PROFILE_ARG
+fi
+
+BUCKET=${ORG}-infra-artifacts-${ACCOUNT}-${REGION}
+
+aws s3 cp ${PWD}/../${TEMPLATE} s3://${BUCKET}/cfn-templates/ --profile ${PROFILE}

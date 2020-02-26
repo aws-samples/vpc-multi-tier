@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# To Do: Replace the following commands with execution of ../scripts/manage-stack
+
+AWS_REGION=us-east-1
+STACK_NAME=VPC-Test
+
+aws cloudformation create-stack \
+                     --stack-name ${STACK_NAME} \
+                     --template-body file:///$PWD/../vpc-multi-tier.yml \
+                     --parameters file:///$PWD/parameters.json \
+                     --capabilities CAPABILITY_NAMED_IAM \
+                     --region ${AWS_REGION}
+
+aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME} --region ${AWS_REGION}
+
+inspec exec validate.rb

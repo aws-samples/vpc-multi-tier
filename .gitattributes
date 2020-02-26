@@ -1,0 +1,24 @@
+# Deal with text file line endings in a default reasonable manner for all text files.
+# Presence of CRLF on Windows when using UNIX-like tools such as Cygwin can be problematic
+# when a Git clone operation results in automatic translation of LF characters to CRLF.
+#
+# The following settings should force proper behavior on Windows clients and obviate the
+# need to maintain local client Git settings.
+# 
+# See more information: https://help.github.com/articles/dealing-with-line-endings/
+#
+# To view a file to see if it has both CR+LF characters, you can:
+#
+#    $ vim -b +'set list' <FILE NAME>
+#
+# If you need to strip the CR characters, use:
+#
+#    $ dos2unix <FILE NAME>
+#
+# And check the result using the vim command shown above.
+#
+
+# Set the default behavior
+* text eol=lf
+
+*.png binary

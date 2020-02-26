@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+AWS_REGION=us-east-1
+STACK_NAME=VPC-Test
+
+aws cloudformation delete-stack \
+                     --stack-name ${STACK_NAME} \
+                     --region ${AWS_REGION}
+
+aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME} --region ${AWS_REGION}

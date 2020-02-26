@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+
+#set -x
+
+PARAMS=""
+while (( "$#" )); do
+  case "$1" in
+    -u|--update)
+      UPDATE=1
+      shift 1
+      ;;
+    -s|--stack-name)
+      STACK_NAME_ARG=$2
+      shift 2
+      ;;
+    -t|--template)
+      TEMPLATE_ARG=$2
+      shift 2
+      ;;
+    -v|--vpc-name)
+      VPC_NAME_ARG=$2
+      shift 2
+      ;;
+    -o|--org)
+      ORG_ARG=$2
+      shift 2
+      ;;
+    -e|--owner-email)
+      OWNER_EMAIL_ARG=$2
+      shift 1
+      ;;
+    -c|--cost-center)
+      COST_CENTER_ARG=$2
+      shift 2
+      ;;
+    -p|--profile)
+      PROFILE_ARG=$2
+      shift 2
+      ;;
+    -r|--region)
+      REGION_ARG=$2
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*|--*=)
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *)
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+
+eval set -- "$PARAMS"
+
+if [ -z $UPDATE ]; then
+  CMD='create-stack --enable-termination-protection'
+else
+  CMD='update-stack'
+fi
+
+if [ -z ${OWNER_EMAIL_ARG+x} ]; then
+  echo 'Must supply --owner-email|-e argument with email address of owner'
+  exit 1
+else
+  OWNER_EMAIL=$OWNER_EMAIL_ARG
+fi
+
+if [ -z ${VPC_NAME_ARG+x} ]; then
+  VPC_NAME=shared
+else
+  VPC_NAME=$VPC_NAME_ARG
+fi
+
+if [ -z ${ORG_ARG+x} ]; then
+  ORG=acme
+else
+  ORG=$ORG_ARG
+fi
+
+if [ -z ${COST_CENTER_ARG+x} ]; then
+  echo 'Must supply --cost-center|-c argument in form nnnnnn'
+  exit 1
+else
+  COST_CENTER=$COST_CENTER_ARG
+fi
+
+if [ -z ${STACK_NAME_ARG+x} ]; then
+  STACK_NAME=vpc-multi-tier
+else
+  STACK_NAME=$STACK_NAME_ARG
+fi
+
+if [ -z ${TEMPLATE_ARG+x} ]; then
+  TEMPLATE=vpc-multi-tier.yml
+else
+  TEMPLATE=$TEMPLATE_ARG
+fi
+
+if [ -z ${PROFILE_ARG+x} ]; then
+  PROFILE=
+else
+  PROFILE="--profile $PROFILE_ARG"
+fi
+
+if [ -z ${REGION_ARG+x} ]; then
+  REGION=us-east-1
+else
+  REGION=$PROFILE_ARG
+fi
+
+aws cloudformation ${CMD} \
+                     --stack-name ${STACK_NAME} \
+                     --template-body file://../${TEMPLATE} \
+                     --parameters \
+                         ParameterKey=pVpcName,ParameterValue=${VPC_NAME} \
+                     --tags \
+                         Key=${ORG}-service-id,Value=infra.vpc \
+                         Key=${ORG}-owner,Value=${OWNER_EMAIL} \
+                         Key=${ORG}-cost-center,Value=${COST_CENTER} \
+                         Key=${ORG}-data-class,Value=internal \
+                         Key=${ORG}-privacy-class,Value=low \
+                     --capabilities CAPABILITY_NAMED_IAM \
+                     --region ${REGION} \
+                     ${PROFILE}
+
+#aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME} --region ${AWS_REGION} --profile ${AWS_PROFILE}

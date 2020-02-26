@@ -1,0 +1,860 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Creates 1-, 2- or 3-tier network environment with 1, 2, or 3 Availability Zones (AZs)
+
+# When using cfn-lint, you might want to exclude rule W1001 so that warnings of the following
+# types are suppressed:
+#
+# Warning	Cfn-Lint	Ref to resource "rInternetGateway" that may not be available when
+# condition "cCreateInternetGateway3Azs" is True and when condition "cCreateInternetGateway"
+# is False at Resources/rTier1IgwRoute3/Properties/GatewayId/Ref
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+      # Complex conditions trigger this warning.
+      - W1001
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: System Classification
+      Parameters:
+      - pOrg
+      - pSystem
+    - Label:
+        default: Overall VPC Configuration
+      Parameters:
+      - pVpcName
+      - pCidr
+      - pNumAzs
+      - pCreateInternetGateway
+      - pCreateNatGateway
+      - pCreateSingleNatGateway
+    - Label:
+        default: VPC Tier 1
+      Parameters:
+      - pTier1Create
+      - pTier1Name
+      - pTier1Subnet1Cidr
+      - pTier1Subnet2Cidr
+      - pTier1Subnet3Cidr
+    - Label:
+        default: VPC Tier 2
+      Parameters:
+      - pTier2Create
+      - pTier2Name
+      - pTier2Subnet1Cidr
+      - pTier2Subnet2Cidr
+      - pTier2Subnet3Cidr
+    - Label:
+        default: VPC Tier 3
+      Parameters:
+      - pTier3Create
+      - pTier3Name
+      - pTier3Subnet1Cidr
+      - pTier3Subnet2Cidr
+      - pTier3Subnet3Cidr
+
+    ParameterLabels:
+      pVpcName:
+        default: VPC Name
+      pOrg:
+        default: Business Scope
+      pSystem:
+        default: System Identifier
+      pCidr:
+        default: VPC CIDR Block
+      pNumAzs:
+        default: Number of AZs
+      pCreateInternetGateway:
+        default: Create Internet Gateway?
+      pCreateNatGateway:
+        default: Create NAT Gateways?
+      pCreateSingleNatGateway:
+        default: Create single NAT Gateway?
+
+      pTier1Create:
+        default: Tier 1 Create?
+      pTier1Name:
+        default: Tier 1 Name
+      pTier1Subnet1Cidr:
+        default: Tier 1 AZ 1 - CIDR
+      pTier1Subnet2Cidr:
+        default: Tier 1 AZ 2 - CIDR
+      pTier1Subnet3Cidr:
+        default: Tier 1 AZ 3 - CIDR
+
+      pTier2Create:
+        default: Tier 2 Create?
+      pTier2Name:
+        default: Tier 2 Name
+      pTier2Subnet1Cidr:
+        default: Tier 2 AZ 1 - CIDR
+      pTier2Subnet2Cidr:
+        default: Tier 2 AZ 2 - CIDR
+      pTier2Subnet3Cidr:
+        default: Tier 2 AZ 3 - CIDR
+
+      pTier3Create:
+        default: Tier 3 Create?
+      pTier3Name:
+        default: Tier 3 Name
+      pTier3Subnet1Cidr:
+        default: Tier 3 AZ 1 - CIDR
+      pTier3Subnet2Cidr:
+        default: Tier 3 AZ 2 - CIDR
+      pTier3Subnet3Cidr:
+        default: Tier 3 AZ 3 - CIDR
+
+Parameters:
+  pVpcName:
+    Type: String
+    Description: Name of the VPC and used to qualify names of associated resources
+    Default: shared
+
+  pOrg:
+    Type: String
+    Description: Used to qualify IAM resource names
+    Default: acme
+
+  pSystem:
+    Type: String
+    Description: Used to qualify IAM role path
+    Default: infra
+
+  pCidr:
+    Type: String
+    Description: CIDR Format x.x.x.x/x
+    Default: 10.1.0.0/20
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    MinLength: 9
+    MaxLength: 18
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pNumAzs:
+    Type: String
+    Default: 3
+    Description: Number of subnets for each tier
+    AllowedValues:
+    - 1
+    - 2
+    - 3
+
+  pCreateInternetGateway:
+    Type: String
+    Description: Whether Internet Gateway should be created
+    Default: true
+    AllowedValues: [true, false]
+
+  pCreateNatGateway:
+    Type: String
+    Description: Whether NAT Gateways should be created
+    Default: true
+    AllowedValues: [true, false]
+
+  pCreateSingleNatGateway:
+    Type: String
+    Description: Single NAT Gateway in 1st public subnet or NAT Gateway in each public subnet
+    Default: true
+    AllowedValues: [true, false]
+
+  pTier1Create:
+    Type: String
+    Description: Whether Tier 1 should be created
+    Default: true
+    AllowedValues: [true, false]
+
+  pTier1Name:
+    Type: String
+    Description: Tier 1 Name
+    Default: public
+
+  pTier2Create:
+    Type: String
+    Description: Whether Tier 2 should be created
+    Default: true
+    AllowedValues: [true, false]
+
+  pTier2Name:
+    Type: String
+    Description: Tier 2 Name
+    Default: private
+
+  pTier3Create:
+    Type: String
+    Description: Whether Tier 3 should be created
+    Default: false
+    AllowedValues: [true, false]
+
+  pTier3Name:
+    Type: String
+    Description: Tier 3 Name
+    Default: restricted
+
+  pTier1Subnet1Cidr:
+    Type: String
+    Description: Tier 1 Subnet AZ 1
+    Default: 10.1.0.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    MinLength: 9
+    MaxLength: 18
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier1Subnet2Cidr:
+    Type: String
+    Description: Tier 1 Subnet AZ 2
+    Default: 10.1.1.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    MinLength: 9
+    MaxLength: 18
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier1Subnet3Cidr:
+    Type: String
+    Description: Tier 1 Subnet AZ 3
+    Default: 10.1.2.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})|^$
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier2Subnet1Cidr:
+    Type: String
+    Description: Tier 2 Subnet AZ 1
+    Default: 10.1.3.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    MinLength: 9
+    MaxLength: 18
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier2Subnet2Cidr:
+    Type: String
+    Description: Tier 2 Subnet AZ 2
+    Default: 10.1.4.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    MinLength: 9
+    MaxLength: 18
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier2Subnet3Cidr:
+    Type: String
+    Description: Tier 2 Subnet AZ 3
+    Default: 10.1.5.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})|^$
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier3Subnet1Cidr:
+    Type: String
+    Description: Tier 3 Subnet AZ 1
+    Default: 10.1.6.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})|^$
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier3Subnet2Cidr:
+    Type: String
+    Description: Tier 3 Subnet AZ 2
+    Default: 10.1.7.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})|^$
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  pTier3Subnet3Cidr:
+    Type: String
+    Description: Tier 3 Subnet AZ 3
+    Default: 10.1.8.0/24
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})|^$
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+Conditions:
+
+  cCreateInternetGatewaySubnet1: !Equals [ !Ref 'pCreateInternetGateway', true ]
+  cCreateInternetGatewaySubnet2: !Or [ !And [ !Equals [ !Ref 'pCreateInternetGateway', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pCreateInternetGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]]
+  cCreateInternetGatewaySubnet3: !And [ !Equals [ !Ref 'pCreateInternetGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]
+
+  cCreateSingleNatGateway:  !And [ !Equals [ !Ref 'pCreateSingleNatGateway', true ], !Equals [ !Ref 'pCreateNatGateway', true ] ]
+  cCreateNatGatewaySubnet1: !Equals [ !Ref 'pCreateNatGateway', true ]
+  cCreateNatGatewaySubnet2: !And [ !Equals [ !Ref 'pCreateSingleNatGateway', false ], !Or [ !And [ !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ] ] ]
+  cCreateNatGatewaySubnet3: !And [ !Equals [ !Ref 'pCreateSingleNatGateway', false ], !And [ !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ] ]
+
+  cCreateTier1Subnet1: !Equals [ !Ref 'pTier1Create', true ]
+  cCreateTier2Subnet1: !Equals [ !Ref 'pTier2Create', true ]
+  cCreateTier3Subnet1: !Equals [ !Ref 'pTier3Create', true ]
+
+  cCreateTier1Subnet2: !Or [ !And [ !Equals [ !Ref 'pTier1Create', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pTier1Create', true ], !Equals [ !Ref 'pNumAzs', 3 ] ] ]
+  cCreateTier2Subnet2: !Or [ !And [ !Equals [ !Ref 'pTier2Create', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pTier2Create', true ], !Equals [ !Ref 'pNumAzs', 3 ] ] ]
+  cCreateTier3Subnet2: !Or [ !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pNumAzs', 3 ] ] ]
+
+  cCreateTier1Subnet3: !And [ !Equals [ !Ref 'pTier1Create', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]
+  cCreateTier2Subnet3: !And [ !Equals [ !Ref 'pTier2Create', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]
+  cCreateTier3Subnet3: !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]
+
+  cCreateTier2NatGatewaySubnet1: !And [ !Equals [ !Ref 'pTier2Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ] ]
+  cCreateTier2NatGatewaySubnet2: !Or [ !And [ !Equals [ !Ref 'pTier2Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pTier2Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]]
+  cCreateTier2NatGatewaySubnet3: !And [ !Equals [ !Ref 'pTier2Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]
+
+  cCreateTier3NatGatewaySubnet1: !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ] ]
+  cCreateTier3NatGatewaySubnet2: !Or [ !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]]
+  cCreateTier3NatGatewaySubnet3: !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]
+ 
+Resources:
+
+  rVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref 'pCidr'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: !Ref pVpcName
+
+#------------------------------------------------------------------------------
+# Enable VPC FlowLogs
+#------------------------------------------------------------------------------
+
+  rVpcFlowLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${pOrg}-${pSystem}-${pVpcName}-svc-flow-logs'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service: vpc-flow-logs.amazonaws.com
+            Action: sts:AssumeRole
+      Path: !Sub '/${pOrg}/${pSystem}/'
+      Policies:
+        -
+          PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  rVpcFlowLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/${pSystem}/${pVpcName}/flowlogs'
+      RetentionInDays: 1
+
+  rVpcFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt rVpcFlowLogRole.Arn
+      LogGroupName: !Ref rVpcFlowLogGroup
+      ResourceId: !Ref rVpc
+      ResourceType: VPC
+      TrafficType: ALL
+
+#------------------------------------------------------------------------------
+# Intenet Gateway
+#------------------------------------------------------------------------------
+
+  rInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Condition: cCreateInternetGatewaySubnet1
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Ref pVpcName
+
+  rInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Condition: cCreateInternetGatewaySubnet1
+    Properties:
+      InternetGatewayId: !Ref 'rInternetGateway'
+      VpcId: !Ref 'rVpc'
+
+#------------------------------------------------------------------------------
+# Tier 1
+#------------------------------------------------------------------------------
+
+  rTier1EipSubnet1:
+    Type: AWS::EC2::EIP
+    Condition: cCreateNatGatewaySubnet1
+    Properties:
+      Domain: vpc
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-natgw-1'
+
+  rTier1EipSubnet2:
+    Type: AWS::EC2::EIP
+    Condition: cCreateNatGatewaySubnet2
+    Properties:
+      Domain: vpc
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-natgw-2'
+
+  rTier1EipSubnet3:
+    Type: AWS::EC2::EIP
+    Condition: cCreateNatGatewaySubnet3
+    Properties:
+      Domain: vpc
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-natgw-3'
+
+  rTier1Subnet1:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier1Subnet1
+    Properties:
+      AvailabilityZone: !Select
+                    - 0
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier1Subnet1Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier1Name}-1'
+
+  rTier1Subnet2:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier1Subnet2
+    Properties:
+      AvailabilityZone: !Select
+                    - 1
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier1Subnet2Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier1Name}-2'
+
+  rTier1Subnet3:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier1Subnet3
+    Properties:
+      AvailabilityZone: !Select
+                    - 2
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier1Subnet3Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier1Name}-3'
+
+  rTier1NatGatewaySubnet1:
+    Type: AWS::EC2::NatGateway
+    DependsOn: rInternetGatewayAttachment
+    Condition: cCreateNatGatewaySubnet1
+    Properties:
+      AllocationId: !GetAtt rTier1EipSubnet1.AllocationId
+      SubnetId: !Ref 'rTier1Subnet1'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-1'
+
+  rTier1NatGatewaySubnet2:
+    Type: AWS::EC2::NatGateway
+    DependsOn: rInternetGatewayAttachment
+    Condition: cCreateNatGatewaySubnet2
+    Properties:
+      AllocationId: !GetAtt rTier1EipSubnet2.AllocationId
+      SubnetId: !Ref 'rTier1Subnet2'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-2'
+
+  rTier1NatGatewaySubnet3:
+    Type: AWS::EC2::NatGateway
+    DependsOn: rInternetGatewayAttachment
+    Condition: cCreateNatGatewaySubnet3
+    Properties:
+      AllocationId: !GetAtt rTier1EipSubnet3.AllocationId
+      SubnetId: !Ref 'rTier1Subnet3'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-3'
+
+  rTier1RouteTable1:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateInternetGatewaySubnet1
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier1Name}-1'
+
+  rTier1RouteTable2:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateInternetGatewaySubnet2
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier1Name}-2'
+
+  rTier1RouteTable3:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateInternetGatewaySubnet3
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier1Name}-3'
+
+  rTier1IgwRoute1:
+    Type: AWS::EC2::Route
+    Condition: cCreateInternetGatewaySubnet1
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref 'rInternetGateway'
+      RouteTableId: !Ref 'rTier1RouteTable1'
+
+  rTier1IgwRoute2:
+    Type: AWS::EC2::Route
+    Condition: cCreateInternetGatewaySubnet2
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref 'rInternetGateway'
+      RouteTableId: !Ref 'rTier1RouteTable2'
+
+  rTier1IgwRoute3:
+    Type: AWS::EC2::Route
+    Condition: cCreateInternetGatewaySubnet3
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref 'rInternetGateway'
+      RouteTableId: !Ref 'rTier1RouteTable3'
+
+  rTier1Subnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateInternetGatewaySubnet1
+    Properties:
+      RouteTableId: !Ref 'rTier1RouteTable1'
+      SubnetId: !Ref 'rTier1Subnet1'
+
+  rTier1Subnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateInternetGatewaySubnet2
+    Properties:
+      RouteTableId: !Ref 'rTier1RouteTable2'
+      SubnetId: !Ref 'rTier1Subnet2'
+
+  rTier1Subnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateInternetGatewaySubnet3
+    Properties:
+      RouteTableId: !Ref 'rTier1RouteTable3'
+      SubnetId: !Ref 'rTier1Subnet3'
+
+#------------------------------------------------------------------------------
+# Tier 2
+#------------------------------------------------------------------------------
+
+  rTier2Subnet1:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier2Subnet1
+    Properties:
+      AvailabilityZone: !Select
+                    - 0
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier2Subnet1Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier2Name}-1'
+
+  rTier2Subnet2:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier2Subnet2
+    Properties:
+      AvailabilityZone: !Select
+                    - 1
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier2Subnet2Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier2Name}-2'
+
+  rTier2Subnet3:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier2Subnet3
+    Properties:
+      AvailabilityZone: !Select
+                    - 2
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier2Subnet3Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier2Name}-3'
+
+  rTier2RouteTable1:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateTier2NatGatewaySubnet1
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier2Name}-1'
+
+  rTier2RouteTable2:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateTier2NatGatewaySubnet2
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier2Name}-2'
+
+  rTier2RouteTable3:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateTier2NatGatewaySubnet3
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier2Name}-3'
+
+  rTier2NatGwRoute1:
+    Type: AWS::EC2::Route
+    Condition: cCreateTier2NatGatewaySubnet1
+    Properties:
+      RouteTableId: !Ref 'rTier2RouteTable1'
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref 'rTier1NatGatewaySubnet1'
+
+  rTier2NatGwRoute2:
+    Type: AWS::EC2::Route
+    Condition: cCreateTier2NatGatewaySubnet2
+    Properties:
+      RouteTableId: !Ref 'rTier2RouteTable2'
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !If [ cCreateSingleNatGateway, !Ref 'rTier1NatGatewaySubnet1', !Ref 'rTier1NatGatewaySubnet2'  ]
+
+  rTier2NatGwRoute3:
+    Type: AWS::EC2::Route
+    Condition: cCreateTier2NatGatewaySubnet3
+    Properties:
+      RouteTableId: !Ref 'rTier2RouteTable3'
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !If [ cCreateSingleNatGateway, !Ref 'rTier1NatGatewaySubnet1', !Ref 'rTier1NatGatewaySubnet3'  ]
+
+  rTier2SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateTier2NatGatewaySubnet1
+    Properties:
+      RouteTableId: !Ref 'rTier2RouteTable1'
+      SubnetId: !Ref 'rTier2Subnet1'
+
+  rTier2SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateTier2NatGatewaySubnet2
+    Properties:
+      RouteTableId: !Ref 'rTier2RouteTable2'
+      SubnetId: !Ref 'rTier2Subnet2'
+
+  rTier2SubnetRouteTableAssociation3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateTier2NatGatewaySubnet3
+    Properties:
+      RouteTableId: !Ref 'rTier2RouteTable3'
+      SubnetId: !Ref 'rTier2Subnet3'
+
+#------------------------------------------------------------------------------
+# Tier 3
+#------------------------------------------------------------------------------
+
+  rTier3Subnet1:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier3Subnet1
+    Properties:
+      AvailabilityZone: !Select
+                    - 0
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier3Subnet1Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier3Name}-1'
+
+  rTier3Subnet2:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier3Subnet2
+    Properties:
+      AvailabilityZone: !Select
+                    - 1
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier3Subnet2Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier3Name}-2'
+
+  rTier3Subnet3:
+    Type: AWS::EC2::Subnet
+    Condition: cCreateTier3Subnet3
+    Properties:
+      AvailabilityZone: !Select
+                    - 2
+                    - !GetAZs ''
+      CidrBlock: !Ref 'pTier3Subnet3Cidr'
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier3Name}-3'
+
+  rTier3RouteTable1:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateTier3NatGatewaySubnet1
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier3Name}-1'
+
+  rTier3RouteTable2:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateTier3NatGatewaySubnet2
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier3Name}-2'
+
+  rTier3RouteTable3:
+    Type: AWS::EC2::RouteTable
+    Condition: cCreateTier3NatGatewaySubnet3
+    DependsOn: rInternetGatewayAttachment
+    Properties:
+      VpcId: !Ref 'rVpc'
+      Tags:
+      - Key: Name
+        Value: !Sub '${pVpcName}-${pTier3Name}-3'
+
+  rTier3NatGwRoute1:
+    Type: AWS::EC2::Route
+    Condition: cCreateTier3NatGatewaySubnet1
+    Properties:
+      RouteTableId: !Ref 'rTier3RouteTable1'
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref 'rTier1NatGatewaySubnet1'
+
+  rTier3NatGwRoute2:
+    Type: AWS::EC2::Route
+    Condition: cCreateTier3NatGatewaySubnet2
+    Properties:
+      RouteTableId: !Ref 'rTier3RouteTable2'
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !If [ cCreateSingleNatGateway, !Ref 'rTier1NatGatewaySubnet1', !Ref 'rTier1NatGatewaySubnet2'  ]
+
+  rTier3NatGwRoute3:
+    Type: AWS::EC2::Route
+    Condition: cCreateTier3NatGatewaySubnet3
+    Properties:
+      RouteTableId: !Ref 'rTier3RouteTable3'
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !If [ cCreateSingleNatGateway, !Ref 'rTier1NatGatewaySubnet1', !Ref 'rTier1NatGatewaySubnet3'  ]
+
+  rTier3SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateTier3NatGatewaySubnet1
+    Properties:
+      RouteTableId: !Ref 'rTier3RouteTable1'
+      SubnetId: !Ref 'rTier3Subnet1'
+
+  rTier3SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateTier3NatGatewaySubnet2
+    Properties:
+      RouteTableId: !Ref 'rTier3RouteTable2'
+      SubnetId: !Ref 'rTier3Subnet2'
+
+  rTier3SubnetRouteTableAssociation3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: cCreateTier3NatGatewaySubnet3
+    Properties:
+      RouteTableId: !Ref 'rTier3RouteTable3'
+      SubnetId: !Ref 'rTier3Subnet3'
+
+Outputs:
+
+  oVpcId:
+    Description: VPC ID
+    Value: !Ref 'rVpc'
+    Export:
+      Name: !Sub '${AWS::StackName}::vpc-id'
+
+  oTier1Subnet1:
+    Description: Tier 1 Subnet 1 ID
+    Value: !Ref 'rTier1Subnet1'
+    Condition: cCreateTier1Subnet1
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier1Name}-subnet-id-1'
+
+  oTier1Subnet2:
+    Description: Tier 1 Subnet 2 ID
+    Value: !Ref 'rTier1Subnet2'
+    Condition: cCreateTier1Subnet2
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier1Name}-subnet-id-2'
+
+  oTier1Subnet3:
+    Description: Tier 1 Subnet 3 ID
+    Value: !Ref 'rTier1Subnet3'
+    Condition: cCreateTier1Subnet3
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier1Name}-subnet-id-3'
+
+  oTier2Subnet1:
+    Description: Tier 2 Subnet 1 ID
+    Value: !Ref 'rTier2Subnet1'
+    Condition: cCreateTier2Subnet1
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier2Name}-subnet-id-1'
+
+  oTier2Subnet2:
+    Description: Tier 2 Subnet 2 ID
+    Value: !Ref 'rTier2Subnet2'
+    Condition: cCreateTier2Subnet2
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier2Name}-subnet-id-2'
+
+  oTier2Subnet3:
+    Description: Tier 2 Subnet 3 ID
+    Value: !Ref 'rTier2Subnet3'
+    Condition: cCreateTier2Subnet3
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier2Name}-subnet-id-3'
+
+  oTier3Subnet1:
+    Description: Tier 3 Subnet 1 ID
+    Value: !Ref 'rTier3Subnet1'
+    Condition: cCreateTier3Subnet1
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier3Name}-subnet-id-1'
+
+  oTier3Subnet2:
+    Description: Tier 3 Subnet 2 ID
+    Value: !Ref 'rTier3Subnet2'
+    Condition: cCreateTier3Subnet2
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier3Name}-subnet-id-2'
+
+  oTier3Subnet3:
+    Description: Tier 3 Subnet 3 ID
+    Value: !Ref 'rTier3Subnet3'
+    Condition: cCreateTier3Subnet3
+    Export:
+      Name: !Sub '${AWS::StackName}::${pTier3Name}-subnet-id-3'

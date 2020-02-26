@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+#set -x
+
+PARAMS=""
+while (( "$#" )); do
+  case "$1" in
+    -a|--admin-account)
+      ADMIN_ACCOUNT_ARG=$2
+      shift 2
+      ;;
+    -s|--stack-set-name)
+      STACK_SET_NAME_ARG=$2
+      shift 2
+      ;;
+    -t|--template)
+      TEMPLATE_ARG=$2
+      shift 2
+      ;;
+    -p|--profile)
+      PROFILE_ARG=$2
+      shift 2
+      ;;
+    -r|--region)
+      REGION_ARG=$2
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*|--*=)
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *)
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+
+eval set -- "$PARAMS"
+
+if [ -z ${ADMIN_ACCOUNT_ARG+x} ]; then
+  ADMIN_ACCOUNT=123456789012
+else
+  ADMIN_ACCOUNT=$ADMIN_ACCOUNT_ARG
+fi
+
+if [ -z ${STACK_SET_NAME_ARG+x} ]; then
+  STACK_SET_NAME=vpc-multi-tier
+else
+  STACK_SET_NAME=$STACK_SET_NAME_ARG
+fi
+
+if [ -z ${TEMPLATE_ARG+x} ]; then
+  TEMPLATE=vpc-multi-tier.yml
+else
+  TEMPLATE=$TEMPLATE_ARG
+fi
+
+if [ -z ${PROFILE_ARG+x} ]; then
+  PROFILE=admin
+else
+  PROFILE=$PROFILE_ARG
+fi
+
+if [ -z ${REGION_ARG+x} ]; then
+  REGION=us-east-1
+else
+  REGION=$PROFILE_ARG
+fi
+
+aws cloudformation create-stack-set \
+                     --stack-set-name ${STACK_SET_NAME} \
+                     --template-body file://../${TEMPLATE} \
+		                 --administration-role-arn arn:aws:iam::123456789012:role/...-stackset-admin \
+		                 --execution-role-name ...tbd... \
+                     --capabilities CAPABILITY_NAMED_IAM \
+                     --region ${REGION} \
+                     --profile ${PROFILE}
+
+#aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME} --region ${AWS_REGION} --profile ${AWS_PROFILE}
