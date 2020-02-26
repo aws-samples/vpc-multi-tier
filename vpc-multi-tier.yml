@@ -56,6 +56,10 @@ Metadata:
       - pTier3Subnet1Cidr
       - pTier3Subnet2Cidr
       - pTier3Subnet3Cidr
+    - Label:
+        default: Permissions Boundary
+      Parameters:    
+      - pPermissionsBoundaryArn
 
     ParameterLabels:
       pVpcName:
@@ -107,6 +111,9 @@ Metadata:
         default: Tier 3 AZ 2 - CIDR
       pTier3Subnet3Cidr:
         default: Tier 3 AZ 3 - CIDR
+
+      pPermissionsBoundaryArn:
+        default: IAM Permissions Boundary ARN (optional)
 
 Parameters:
   pVpcName:
@@ -264,6 +271,11 @@ Parameters:
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})|^$
     ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
 
+  pPermissionsBoundaryArn:
+    Description: IAM Permissions Boundary ARN (optional)
+    Type: String
+    Default: ''
+
 Conditions:
 
   cCreateInternetGatewaySubnet1: !Equals [ !Ref 'pCreateInternetGateway', true ]
@@ -294,7 +306,9 @@ Conditions:
   cCreateTier3NatGatewaySubnet1: !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ] ]
   cCreateTier3NatGatewaySubnet2: !Or [ !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 2 ] ], !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]]
   cCreateTier3NatGatewaySubnet3: !And [ !Equals [ !Ref 'pTier3Create', true ], !Equals [ !Ref 'pCreateNatGateway', true ], !Equals [ !Ref 'pNumAzs', 3 ] ]
- 
+
+  cUsePermissionsBoundary: !Not [!Equals [ !Ref 'pPermissionsBoundaryArn', '' ] ]
+
 Resources:
 
   rVpc:
@@ -339,6 +353,7 @@ Resources:
                   - logs:DescribeLogStreams
                   - logs:PutLogEvents
                 Resource: "*"
+      PermissionsBoundary: !If [ cUsePermissionsBoundary, !Ref pPermissionsBoundaryArn, !Ref 'AWS::NoValue' ]
 
   rVpcFlowLogGroup:
     Type: AWS::Logs::LogGroup

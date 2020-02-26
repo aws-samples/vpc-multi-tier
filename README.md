@@ -26,7 +26,7 @@ This template does not currently configure VPC endpoints, but PRs are welcome.
 
 ## Usage
 
-See the [`vpc-multi-tier.yml`](vpc-multi-tier.yml)
+Create an AWS CloudFormation stack based on the parameters described in the next section and the template [`vpc-multi-tier.yml`](vpc-multi-tier.yml)
 
 ## Parameters
 
@@ -44,6 +44,7 @@ Use the following parameters to assign the overall CIDR block for the VPC, speci
 |`pCreateInternetGateway`|Optional|`true` or `false`. Create Internet Gateway for the VPC|`true`|
 |`pCreateNatGateways`|Optional|`true` or `false`. Create one or more  NAT Gateways and configure the private and restricted subnets to route Internet bound traffic to the NAT Gateways. By default, a NAT Gateway is created in each public subnet.|`true`|
 |`pCreateSingleNatGateway`|Optional|`true` or `false`. Create a single NAT Gateway in the first public subnet and configure routing in other subnets to route Internet bound traffic to the single NAT gateway.|`true`|
+|`pPermissionsBoundaryArn`|Optional|AWS IAM Permissions Boundary ARN||
 
 ### Tier Parameters
 
