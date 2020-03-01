@@ -376,7 +376,7 @@ Resources:
     Properties:
       Tags:
       - Key: Name
-        Value: !Ref pVpcName
+        Value: !Sub '${pSystem}-${pVpcName}'
 
   rInternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
