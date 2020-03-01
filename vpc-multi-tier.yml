@@ -396,7 +396,7 @@ Resources:
       Domain: vpc
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-natgw-1'
+        Value: !Sub '${pSystem}-${pVpcName}-natgw-1'
 
   rTier1EipSubnet2:
     Type: AWS::EC2::EIP
@@ -405,7 +405,7 @@ Resources:
       Domain: vpc
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-natgw-2'
+        Value: !Sub '${pSystem}-${pVpcName}-natgw-2'
 
   rTier1EipSubnet3:
     Type: AWS::EC2::EIP
@@ -414,7 +414,7 @@ Resources:
       Domain: vpc
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-natgw-3'
+        Value: !Sub '${pSystem}-${pVpcName}-natgw-3'
 
   rTier1Subnet1:
     Type: AWS::EC2::Subnet
@@ -427,7 +427,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier1Name}-1'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier1Name}-1'
 
   rTier1Subnet2:
     Type: AWS::EC2::Subnet
@@ -440,7 +440,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier1Name}-2'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier1Name}-2'
 
   rTier1Subnet3:
     Type: AWS::EC2::Subnet
@@ -453,7 +453,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier1Name}-3'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier1Name}-3'
 
   rTier1NatGatewaySubnet1:
     Type: AWS::EC2::NatGateway
@@ -464,7 +464,7 @@ Resources:
       SubnetId: !Ref 'rTier1Subnet1'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-1'
+        Value: !Sub '${pSystem}-${pVpcName}-1'
 
   rTier1NatGatewaySubnet2:
     Type: AWS::EC2::NatGateway
@@ -475,7 +475,7 @@ Resources:
       SubnetId: !Ref 'rTier1Subnet2'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-2'
+        Value: !Sub '${pSystem}-${pVpcName}-2'
 
   rTier1NatGatewaySubnet3:
     Type: AWS::EC2::NatGateway
@@ -486,7 +486,7 @@ Resources:
       SubnetId: !Ref 'rTier1Subnet3'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-3'
+        Value: !Sub '${pSystem}-${pVpcName}-3'
 
   rTier1RouteTable1:
     Type: AWS::EC2::RouteTable
@@ -496,7 +496,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier1Name}-1'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier1Name}-1'
 
   rTier1RouteTable2:
     Type: AWS::EC2::RouteTable
@@ -506,7 +506,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier1Name}-2'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier1Name}-2'
 
   rTier1RouteTable3:
     Type: AWS::EC2::RouteTable
@@ -516,7 +516,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier1Name}-3'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier1Name}-3'
 
   rTier1IgwRoute1:
     Type: AWS::EC2::Route
@@ -578,7 +578,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier2Name}-1'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier2Name}-1'
 
   rTier2Subnet2:
     Type: AWS::EC2::Subnet
@@ -591,7 +591,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier2Name}-2'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier2Name}-2'
 
   rTier2Subnet3:
     Type: AWS::EC2::Subnet
@@ -604,7 +604,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier2Name}-3'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier2Name}-3'
 
   rTier2RouteTable1:
     Type: AWS::EC2::RouteTable
@@ -614,7 +614,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier2Name}-1'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier2Name}-1'
 
   rTier2RouteTable2:
     Type: AWS::EC2::RouteTable
@@ -624,7 +624,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier2Name}-2'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier2Name}-2'
 
   rTier2RouteTable3:
     Type: AWS::EC2::RouteTable
@@ -634,7 +634,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier2Name}-3'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier2Name}-3'
 
   rTier2NatGwRoute1:
     Type: AWS::EC2::Route
@@ -696,7 +696,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier3Name}-1'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier3Name}-1'
 
   rTier3Subnet2:
     Type: AWS::EC2::Subnet
@@ -709,7 +709,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier3Name}-2'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier3Name}-2'
 
   rTier3Subnet3:
     Type: AWS::EC2::Subnet
@@ -722,7 +722,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier3Name}-3'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier3Name}-3'
 
   rTier3RouteTable1:
     Type: AWS::EC2::RouteTable
@@ -732,7 +732,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier3Name}-1'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier3Name}-1'
 
   rTier3RouteTable2:
     Type: AWS::EC2::RouteTable
@@ -742,7 +742,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier3Name}-2'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier3Name}-2'
 
   rTier3RouteTable3:
     Type: AWS::EC2::RouteTable
@@ -752,7 +752,7 @@ Resources:
       VpcId: !Ref 'rVpc'
       Tags:
       - Key: Name
-        Value: !Sub '${pVpcName}-${pTier3Name}-3'
+        Value: !Sub '${pSystem}-${pVpcName}-${pTier3Name}-3'
 
   rTier3NatGwRoute1:
     Type: AWS::EC2::Route
