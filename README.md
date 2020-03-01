@@ -20,7 +20,7 @@ This template currently supports:
   * When a NAT Gateway is specified, you can either specify a single NAT Gateway in the first public subnet or you can specify that a NAT Gateway be provisioned in each public subnet and therefore in each AZ.
 
 * VPC Flow Logs are configured by default.
-* Wherever supported, resources are assigned names based on the `pVpcName`, `pOrg`, and `pSystem` parameters.
+* Wherever supported, resources are assigned names based on the `pOrg`, `pSystem`, `pVpcName` parameters.
 
 This template does not currently configure VPC endpoints, but PRs are welcome.
 
@@ -36,7 +36,7 @@ Use the following parameters to assign the overall CIDR block for the VPC, speci
 
 |Parameter|Required|Description|Default|
 |---------|--------|-----------|-------|
-|`pVpcName`|Optional|Acts as the VPC name and is also used to qualify supporting resource names per AWS resource naming best practices.|`shared`|
+|`pVpcName`|Optional|Acts as the qualifier of the VPC name and is also used to qualify supporting resource names per AWS resource naming best practices.|`shared` is the default qualifier value and is prefixed by the value of `pSystem` to create the VPC name. For example, with default parameter values for `pSystem` and `pVpcName`, the VPC name will be `base-shared`.|
 |`pOrg`|Optional|Used to qualify IAM resource names per AWS resource naming best practices.|`acme`|
 |`pSystem`|Optional|Used to qualify IAM resource names per AWS naming best practices.|`base`|
 |`pCidr`|Required|CIDR block of the VPC|`10.1.0.0/20`|
