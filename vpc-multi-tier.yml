@@ -315,7 +315,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
       - Key: Name
-        Value: !Ref pVpcName
+        Value: !Sub '${pSystem}-${pVpcName}'
 
 #------------------------------------------------------------------------------
 # Enable VPC FlowLogs
