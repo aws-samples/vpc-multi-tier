@@ -38,7 +38,7 @@ Use the following parameters to assign the overall CIDR block for the VPC, speci
 |---------|--------|-----------|-------|
 |`pVpcName`|Optional|Acts as the VPC name and is also used to qualify supporting resource names per AWS resource naming best practices.|`shared`|
 |`pOrg`|Optional|Used to qualify IAM resource names per AWS resource naming best practices.|`acme`|
-|`pSystem`|Optional|Used to qualify IAM resource names per AWS naming best practices.|`infra`|
+|`pSystem`|Optional|Used to qualify IAM resource names per AWS naming best practices.|`base`|
 |`pCidr`|Required|CIDR block of the VPC|`10.1.0.0/20`|
 |`pNumAzs`|Optional|`1`, `2` or `3`. Number of Availability Zones (AZs) required for each of tier. Drives the number of subnets to create in each tier.|`2`|
 |`pCreateInternetGateway`|Optional|`true` or `false`. Create Internet Gateway for the VPC|`true`|
