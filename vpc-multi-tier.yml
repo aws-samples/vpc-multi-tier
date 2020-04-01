@@ -115,7 +115,7 @@ Parameters:
   pVpcName:
     Type: String
     Description: Name of the VPC and used to qualify names of associated resources
-    Default: shared
+    Default: dev
 
   pOrg:
     Type: String
