@@ -125,7 +125,7 @@ Parameters:
   pSystem:
     Type: String
     Description: Used to qualify IAM role path
-    Default: base
+    Default: infra
 
   pCidr:
     Type: String
