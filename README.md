@@ -36,9 +36,9 @@ Use the following parameters to assign the overall CIDR block for the VPC, speci
 
 |Parameter|Required|Description|Default|
 |---------|--------|-----------|-------|
-|`pVpcName`|Optional|Acts as the qualifier of the VPC name and is also used to qualify supporting resource names per AWS resource naming best practices.|`dev` is the default qualifier value and is prefixed by the value of `pSystem` to create the VPC name. For example, with default parameter values for `pSystem` and `pVpcName`, the VPC name will be `base-dev`.|
+|`pVpcName`|Optional|Acts as the qualifier of the VPC name and is also used to qualify supporting resource names per AWS resource naming best practices.|`dev` is the default qualifier value and is prefixed by the value of `pSystem` to create the VPC name. For example, with default parameter values for `pSystem` and `pVpcName`, the VPC name will be `infra-dev`.|
 |`pOrg`|Optional|Used to qualify IAM resource names per AWS resource naming best practices.|`example`|
-|`pSystem`|Optional|Used to qualify IAM resource names per AWS naming best practices.|`base`|
+|`pSystem`|Optional|Used to qualify IAM resource names per AWS naming best practices.|`infra`|
 |`pCidr`|Required|CIDR block of the VPC|`10.1.0.0/20`|
 |`pNumAzs`|Optional|`1`, `2` or `3`. Number of Availability Zones (AZs) required for each of tier. Drives the number of subnets to create in each tier.|`2`|
 |`pCreateInternetGateway`|Optional|`true` or `false`. Create Internet Gateway for the VPC|`true`|
