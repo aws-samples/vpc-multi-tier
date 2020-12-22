@@ -120,7 +120,7 @@ Parameters:
   pOrg:
     Type: String
     Description: Used to qualify IAM resource names
-    Default: acme
+    Default: example
 
   pSystem:
     Type: String
