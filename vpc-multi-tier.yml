@@ -324,7 +324,7 @@ Resources:
   rVpcFlowLogRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub '${pOrg}-${pSystem}-${pVpcName}-svc-flow-logs'
+      RoleName: !Sub '${pOrg}-${pSystem}-${pVpcName}-${AWS::Region}-svc-flow-logs'
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -348,7 +348,7 @@ Resources:
                   - logs:DescribeLogGroups
                   - logs:DescribeLogStreams
                   - logs:PutLogEvents
-                Resource: "*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:*:log-group:/${pSystem}/${pVpcName}/flowlogs:*"
       PermissionsBoundary: !If [ cUsePermissionsBoundary, !Ref pPermissionsBoundaryArn, !Ref 'AWS::NoValue' ]
 
   rVpcFlowLogGroup:
@@ -367,7 +367,7 @@ Resources:
       TrafficType: ALL
 
 #------------------------------------------------------------------------------
-# Intenet Gateway
+# Internet Gateway
 #------------------------------------------------------------------------------
 
   rInternetGateway:
@@ -457,6 +457,11 @@ Resources:
 
   rTier1NatGatewaySubnet1:
     Type: AWS::EC2::NatGateway
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     DependsOn: rInternetGatewayAttachment
     Condition: cCreateNatGatewaySubnet1
     Properties:
@@ -468,6 +473,11 @@ Resources:
 
   rTier1NatGatewaySubnet2:
     Type: AWS::EC2::NatGateway
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     DependsOn: rInternetGatewayAttachment
     Condition: cCreateNatGatewaySubnet2
     Properties:
@@ -479,6 +489,11 @@ Resources:
 
   rTier1NatGatewaySubnet3:
     Type: AWS::EC2::NatGateway
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     DependsOn: rInternetGatewayAttachment
     Condition: cCreateNatGatewaySubnet3
     Properties:
@@ -608,6 +623,11 @@ Resources:
 
   rTier2RouteTable1:
     Type: AWS::EC2::RouteTable
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     Condition: cCreateTier2NatGatewaySubnet1
     DependsOn: rInternetGatewayAttachment
     Properties:
@@ -618,6 +638,11 @@ Resources:
 
   rTier2RouteTable2:
     Type: AWS::EC2::RouteTable
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     Condition: cCreateTier2NatGatewaySubnet2
     DependsOn: rInternetGatewayAttachment
     Properties:
@@ -628,6 +653,11 @@ Resources:
 
   rTier2RouteTable3:
     Type: AWS::EC2::RouteTable
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     Condition: cCreateTier2NatGatewaySubnet3
     DependsOn: rInternetGatewayAttachment
     Properties:
@@ -726,6 +756,11 @@ Resources:
 
   rTier3RouteTable1:
     Type: AWS::EC2::RouteTable
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     Condition: cCreateTier3NatGatewaySubnet1
     DependsOn: rInternetGatewayAttachment
     Properties:
@@ -736,6 +771,11 @@ Resources:
 
   rTier3RouteTable2:
     Type: AWS::EC2::RouteTable
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     Condition: cCreateTier3NatGatewaySubnet2
     DependsOn: rInternetGatewayAttachment
     Properties:
@@ -746,6 +786,11 @@ Resources:
 
   rTier3RouteTable3:
     Type: AWS::EC2::RouteTable
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3005
     Condition: cCreateTier3NatGatewaySubnet3
     DependsOn: rInternetGatewayAttachment
     Properties:
